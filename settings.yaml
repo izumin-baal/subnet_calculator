@@ -2,29 +2,29 @@ output:
   filename: ""
   column:
     hostAddr:
-      - name: "ip"
+      name: "ip"
     hostPrefix:
-      - name: "ipprefix"
+      name: "ipprefix"
     networkAddr:
-      - name: "network"
+      name: "network"
     networkPrefix:
-      - name: "networkprefix"
+      name: "networkprefix"
     broadcastAddr:
-      - name: "broadcast"
+      name: "broadcast"
     broadcastPrefix:
-      - name: "broadcastprefix"
+      name: "broadcastprefix"
     prefixLen:
-      - name: "prefixlen"
+      name: "prefixlen"
     subnetmask:
-      - name: "subnetmask"
+      name: "subnetmask"
     wildcardmask:
-      - name: "wildcardmask"
+      name: "wildcardmask"
     addressNum:
-      - name: "addressnum"
+      name: "addressnum"
     hostNum:
-      - name: "hostnum"
+      name: "hostnum"
     public:
-      - name: "public"
+      name: "public"
     custom:
-      - name: "vip"
-      - fromTheLast: 1
+      name: "vip"
+      fromTheLast: 1
