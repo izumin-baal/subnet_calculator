@@ -6,6 +6,7 @@ from enum import Enum
 import os
 import re
 import sys
+import yaml
 
 class Color():
     RED = '\033[31m'
@@ -18,14 +19,14 @@ class LoggingSeverity():
     INFO = Color.GREEN + '[Info] ' + Color.CLEAR
 
 class Message():
-    FILE_NOT_FOUND = "File is not found..."
-    FORMAT_ERROR_PREFIX = "The format of the Prefix is incorrect."
+    FILE_NOT_FOUND = "File is not found"
+    FORMAT_ERROR_PREFIX = "The format of the Prefix is incorrect"
 
 def parse_args():
     parser = argparse.ArgumentParser(prog="Subnet Calculator", description="This Script is Subnet Calculate. A useful tool for network engineers.")
     parser.add_argument('-i', '--input_file', help='Use file to calculate multiple values.')
     parser.add_argument('-o', '--output_file', help='File to output calculation results')
-    parser.add_argument('-s', '--option', help='Select the settings file you wish to use')
+    parser.add_argument('-s', '--settings', help='Select the settings file you wish to use')
     args = parser.parse_args()
     return args
 
@@ -58,7 +59,13 @@ def check_format_prefix(value):
     else:
         return False
 
+def load_settings(inputFile):
+    with open(inputFile) as f:
+        settings = yaml.safe_load(f)
+    print(settings)
+
 def main():
+    # input
     args = parse_args()
     targetValue = []
     if (args.input_file): # input or stdin
@@ -68,6 +75,22 @@ def main():
         targetValue = load_inputfile(args.input_file)
     else:
         analyze_args()
+
+    settingsFile = args.settings
+    if (settingsFile):
+        if not is_file(settingsFile):
+            print(LoggingSeverity.ERROR + Message.FILE_NOT_FOUND)
+            exit()
+    else:
+        if not is_file("./settings.yaml"):
+            print(LoggingSeverity.ERROR + Message.FILE_NOT_FOUND + " (./settings.yaml)")
+            exit()
+        settingsFile = "./settings.yaml"
+    
+    settings = load_settings(settingsFile)
+    # process
+
+    # output
 
 if __name__ == "__main__":
     main()
