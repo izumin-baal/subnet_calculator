@@ -1,0 +1,6 @@
+a: hoge1
+b: hoge2
+c: 
+  - hoge3-1
+  - hoge3-2
+  - hoge3-3
