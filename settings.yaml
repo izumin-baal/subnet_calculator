@@ -1,6 +1,30 @@
-a: hoge1
-b: hoge2
-c: 
-  - hoge3-1
-  - hoge3-2
-  - hoge3-3
+output:
+  filename: ""
+  column:
+    hostAddr:
+      - name: "ip"
+    hostPrefix:
+      - name: "ipprefix"
+    networkAddr:
+      - name: "network"
+    networkPrefix:
+      - name: "networkprefix"
+    broadcastAddr:
+      - name: "broadcast"
+    broadcastPrefix:
+      - name: "broadcastprefix"
+    prefixLen:
+      - name: "prefixlen"
+    subnetmask:
+      - name: "subnetmask"
+    wildcardmask:
+      - name: "wildcardmask"
+    addressNum:
+      - name: "addressnum"
+    hostNum:
+      - name: "hostnum"
+    public:
+      - name: "public"
+    custom:
+      - name: "vip"
+      - fromTheLast: 1
