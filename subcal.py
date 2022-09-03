@@ -21,6 +21,35 @@ class LoggingSeverity():
 class Message():
     FILE_NOT_FOUND = "File is not found"
     FORMAT_ERROR_PREFIX = "The format of the Prefix is incorrect"
+    COLUMN_ERROR_PREFIX = "Unavailable columns exist"
+    COLUMNOPTION_ERROR_PREFIX = "Unavailable columns option exist"
+
+class OutputColumn():
+    column = [
+        "hostAddr",
+        "hostPrefix", 
+        "networkAddr", 
+        "networkPrefix", 
+        "broadcastAddr", 
+        "broadcastPrefix", 
+        "prefixLen", 
+        "subnetmask", 
+        "wildcardmask", 
+        "addressNum", 
+        "hostNum", 
+        "public", 
+        "custom"
+    ]
+
+class ColumnOption():
+    common = [
+        "name"
+    ]
+    custom = [
+        "name",
+        "fromTheLast",
+        "fromThefirst"
+    ]
 
 def parse_args():
     parser = argparse.ArgumentParser(prog="Subnet Calculator", description="This Script is Subnet Calculate. A useful tool for network engineers.")
@@ -62,7 +91,31 @@ def check_format_prefix(value):
 def load_settings(inputFile):
     with open(inputFile) as f:
         settings = yaml.safe_load(f)
-    print(settings)
+    errorFlag = False
+    for v in settings['output']['column'].keys():
+        if check_column(v):
+            for i,j in settings['output']['column'][v].items():
+                if check_column_option(v,i):
+                    pass
+                else:
+                    print(LoggingSeverity.ERROR + Message.COLUMNOPTION_ERROR_PREFIX + " (" + str(v) + "." + str(i) + ")")
+                    errorFlag = True
+        else:
+            print(LoggingSeverity.ERROR + Message.COLUMN_ERROR_PREFIX + " (" + v + ")")
+            errorFlag = True
+    if errorFlag:
+        exit()
+    return settings['output']['column']
+
+
+def check_column(column):
+    return column in OutputColumn.column
+
+def check_column_option(column,option):
+    if column == "custom":
+        return option in ColumnOption.custom
+    else:
+        return option in ColumnOption.common
 
 def main():
     # input
@@ -87,7 +140,8 @@ def main():
             exit()
         settingsFile = "./settings.yaml"
     
-    settings = load_settings(settingsFile)
+    outputColumnList = load_settings(settingsFile)
+    print(outputColumnList)
     # process
 
     # output
