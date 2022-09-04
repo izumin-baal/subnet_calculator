@@ -3,11 +3,11 @@
 import argparse
 import ipaddress as ip
 from enum import Enum
-from nis import match
 import os
 import re
 import sys
 import csv
+from unittest import skip
 import yaml
 
 class Color():
@@ -130,10 +130,13 @@ def load_settings(inputFile):
 
 
 def check_column(column):
-    return column in OutputColumn.column
+    if bool(re.search(r'^custom', column)):
+        return True
+    else:
+        return column in OutputColumn.column
 
 def check_column_option(column,option):
-    if column == "custom":
+    if bool(re.search(r'^custom', column)):
         return option in ColumnOption.custom
     else:
         return option in ColumnOption.common
@@ -148,7 +151,7 @@ def calculate_subnets(targetValue, outputSettings):
         for j in calculateItems:
             if v == "":
                 resultsRow.append("")
-            elif j == OutputColumn.CUSTOM:
+            elif bool(re.search(r'^custom', j)):
                 resultsRow.append(calculate(v,j,outputSettings['column'][j]))
             else:
                 resultsRow.append(calculate(v,j))
@@ -184,7 +187,7 @@ def calculate(target,calculateItem,calculateItemOption=None):
             return "private"
         else:
             return "global"
-    elif calculateItem == OutputColumn.CUSTOM:
+    elif bool(re.search(r'^custom', calculateItem)):
         try:
             if calculateItemOption['fromTheLast']:
                 return (i.network.broadcast_address - int(calculateItemOption['fromTheLast'])).exploded
@@ -205,6 +208,14 @@ def save_file(data, file):
         writer = csv.writer(f, lineterminator="\n")
         writer.writerows(data)
 
+def output_stdout(data):
+    print('### Subnet Calculator ###')
+    print('\t'.join([str(i) for i in data[0]]))
+    print("-"*150)
+    for i,v in enumerate(data):
+        if i == 0:
+            continue
+        print('\t'.join([str(i) for i in v]))
 
 def main():
     # input
@@ -258,7 +269,7 @@ def main():
                 saveFlag = False
         save_file(outputData, outputFileName)
     else:
-        exit()
+        output_stdout(outputData)
 
 if __name__ == "__main__":
     main()
