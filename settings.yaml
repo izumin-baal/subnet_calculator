@@ -23,8 +23,8 @@ output:
       name: "addressnum"
     hostNum:
       name: "hostnum"
-    public:
-      name: "public"
+    isPrivate:
+      name: "private"
     custom:
       name: "vip"
-      fromTheLast: 1
+      fromTheLast: "1"
