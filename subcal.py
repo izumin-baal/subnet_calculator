@@ -7,6 +7,7 @@ from nis import match
 import os
 import re
 import sys
+import csv
 import yaml
 
 class Color():
@@ -199,6 +200,12 @@ def calculate(target,calculateItem,calculateItemOption=None):
         return "NaN"
     return target
 
+def save_file(data, file):
+    with open(file, 'w') as f:
+        writer = csv.writer(f, lineterminator="\n")
+        writer.writerows(data)
+
+
 def main():
     # input
     ## args
@@ -228,10 +235,30 @@ def main():
     
     # process
     calculateResults = calculate_subnets(targetValue, outputSettings)
+    header = []
+    for v in outputSettings['column'].keys():
+        header.append(outputSettings['column'][v]['name'])
     
+    outputData = [header] + calculateResults
+
     # output
-    #for v in outputSettings['column'].keys():
-    #    header.append(outputSettings['column'][v]['name'])
+    outputFileName = args.output_file
+    if (outputFileName): # output or stdout
+        saveFlag = True
+        while saveFlag:
+            if is_file(outputFileName):
+                agree = input('There is already a file. Can I overwrite it? y/n [n]: ')
+                if agree == "y":
+                    saveFlag = False
+                else:
+                    outputFileName = input('Where do you want the output to go?: ')
+                    if (outputFileName == '' or outputFileName == None or outputFileName.isspace()):
+                        exit()
+            else:
+                saveFlag = False
+        save_file(outputData, outputFileName)
+    else:
+        exit()
 
 if __name__ == "__main__":
     main()
