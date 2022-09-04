@@ -65,7 +65,7 @@ class ColumnOption():
     custom = [
         "name",
         "fromTheLast",
-        "fromThefirst"
+        "fromTheFirst"
     ]
 
 def parse_args():
