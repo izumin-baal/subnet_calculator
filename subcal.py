@@ -25,6 +25,7 @@ class Message():
     COLUMN_ERROR_PREFIX = "Unavailable columns exist"
     COLUMNOPTION_ERROR_PREFIX = "Unavailable columns option exist"
     COLUMNOPTION_ERROR_VALUE = "Unexpected value"
+    COLUMNOPTION_ERROR_COLUMNNAME = "Column name is required"
 
 class OutputColumn():
     HOSTADDR = "hostAddr"
@@ -111,7 +112,11 @@ def load_settings(inputFile):
         if check_column(v):
             for i,j in settings['output']['column'][v].items():
                 if check_column_option(v,i):
-                    pass
+                    try:
+                        if settings['output']['column'][v]['name']:
+                            pass
+                    except KeyError:
+                        print(LoggingSeverity.ERROR + Message.COLUMNOPTION_ERROR_COLUMNNAME)
                 else:
                     print(LoggingSeverity.ERROR + Message.COLUMNOPTION_ERROR_PREFIX + " (" + str(v) + "." + str(i) + ")")
                     errorFlag = True
@@ -196,7 +201,9 @@ def calculate(target,calculateItem,calculateItemOption=None):
 
 def main():
     # input
+    ## args
     args = parse_args()
+    ## input data
     targetValue = []
     if (args.input_file): # input or stdin
         if not is_file(args.input_file):
@@ -206,6 +213,7 @@ def main():
     else:
         analyze_args()
 
+    ## settings data
     settingsFile = args.settings
     if (settingsFile):
         if not is_file(settingsFile):
@@ -216,13 +224,11 @@ def main():
             print(LoggingSeverity.ERROR + Message.FILE_NOT_FOUND + " (./settings.yaml)")
             exit()
         settingsFile = "./settings.yaml"
-    
     outputSettings = load_settings(settingsFile)
     
     # process
     calculateResults = calculate_subnets(targetValue, outputSettings)
     
-    # return {{'name': 'value', 'name': 'value'}}
     # output
     #for v in outputSettings['column'].keys():
     #    header.append(outputSettings['column'][v]['name'])
