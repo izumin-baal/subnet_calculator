@@ -189,9 +189,9 @@ def calculate(target,calculateItem,calculateItemOption=None):
             return "global"
     elif bool(re.search(r'^custom', calculateItem)):
         try:
-            if calculateItemOption['fromTheLast']:
+            if calculateItemOption.get('fromTheLast', False):
                 return (i.network.broadcast_address - int(calculateItemOption['fromTheLast'])).exploded
-            elif calculateItemOption['fromTheFirst']:
+            elif calculateItemOption.get('fromTheFirst', False):
                 return (i.network.network_address + int(calculateItemOption['fromTheFirst'])).exploded
             else:
                 pass
