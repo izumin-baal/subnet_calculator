@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import argparse
-import ipaddress
+import ipaddress as ip
 from enum import Enum
+from nis import match
 import os
 import re
 import sys
@@ -23,22 +24,36 @@ class Message():
     FORMAT_ERROR_PREFIX = "The format of the Prefix is incorrect"
     COLUMN_ERROR_PREFIX = "Unavailable columns exist"
     COLUMNOPTION_ERROR_PREFIX = "Unavailable columns option exist"
+    COLUMNOPTION_ERROR_VALUE = "Unexpected value"
 
 class OutputColumn():
+    HOSTADDR = "hostAddr"
+    HOSTPREFIX = "hostPrefix"
+    NETWORKADDR = "networkAddr"
+    NETWORKPREFIX = "networkPrefix"
+    BROADCASTADDR = "broadcastAddr"
+    BROADCASTPREFIX = "broadcastPrefix"
+    PREFIXLEN = "prefixLen"
+    SUBNETMASK = "subnetmask"
+    WILDCARDMASK = "wildcardmask"
+    ADDRESSNUM = "addressNum"
+    HOSTNUM = "hostNum"
+    ISPRIVATE = "isPrivate"
+    CUSTOM = "custom"
     column = [
-        "hostAddr",
-        "hostPrefix", 
-        "networkAddr", 
-        "networkPrefix", 
-        "broadcastAddr", 
-        "broadcastPrefix", 
-        "prefixLen", 
-        "subnetmask", 
-        "wildcardmask", 
-        "addressNum", 
-        "hostNum", 
-        "public", 
-        "custom"
+        HOSTADDR,
+        HOSTPREFIX, 
+        NETWORKADDR, 
+        NETWORKPREFIX, 
+        BROADCASTADDR, 
+        BROADCASTPREFIX, 
+        PREFIXLEN, 
+        SUBNETMASK, 
+        WILDCARDMASK, 
+        ADDRESSNUM, 
+        HOSTNUM, 
+        ISPRIVATE, 
+        CUSTOM
     ]
 
 class ColumnOption():
@@ -105,7 +120,7 @@ def load_settings(inputFile):
             errorFlag = True
     if errorFlag:
         exit()
-    return settings['output']['column']
+    return settings['output']
 
 
 def check_column(column):
@@ -116,6 +131,68 @@ def check_column_option(column,option):
         return option in ColumnOption.custom
     else:
         return option in ColumnOption.common
+
+def calculate_subnets(targetValue, outputSettings):
+    results = []
+    calculateItems = []
+    for v in outputSettings['column']:
+        calculateItems.append(v)
+    for v in targetValue:
+        resultsRow = []
+        for j in calculateItems:
+            if v == "":
+                resultsRow.append("")
+            elif j == OutputColumn.CUSTOM:
+                resultsRow.append(calculate(v,j,outputSettings['column'][j]))
+            else:
+                resultsRow.append(calculate(v,j))
+        results.append(resultsRow)
+    return results
+
+def calculate(target,calculateItem,calculateItemOption=None):
+    i = ip.ip_interface(target)
+    if calculateItem == OutputColumn.HOSTADDR:
+        return i.ip.exploded
+    elif calculateItem == OutputColumn.HOSTPREFIX:
+        return i.with_prefixlen
+    elif calculateItem == OutputColumn.NETWORKADDR:
+        return i.network.network_address.exploded
+    elif calculateItem == OutputColumn.NETWORKPREFIX:
+        return str(i.network.with_prefixlen)
+    elif calculateItem == OutputColumn.BROADCASTADDR:
+        return i.network.broadcast_address.exploded
+    elif calculateItem == OutputColumn.BROADCASTPREFIX:
+        return i.network.broadcast_address.exploded + "/" + str(i.network.prefixlen)
+    elif calculateItem == OutputColumn.PREFIXLEN:
+        return str(i.network.prefixlen)
+    elif calculateItem == OutputColumn.SUBNETMASK:
+        return i.network.netmask.exploded
+    elif calculateItem == OutputColumn.WILDCARDMASK:
+        return i.network.hostmask.exploded
+    elif calculateItem == OutputColumn.ADDRESSNUM:
+        return str(i.network.num_addresses)
+    elif calculateItem == OutputColumn.HOSTNUM:
+        return str(i.network.num_addresses - 2)
+    elif calculateItem == OutputColumn.ISPRIVATE:
+        if i.ip.is_private:
+            return "private"
+        else:
+            return "global"
+    elif calculateItem == OutputColumn.CUSTOM:
+        try:
+            if calculateItemOption['fromTheLast']:
+                return (i.network.broadcast_address - int(calculateItemOption['fromTheLast'])).exploded
+            elif calculateItemOption['fromTheFirst']:
+                return (i.network.network_address + int(calculateItemOption['fromTheFirst'])).exploded
+            else:
+                pass
+        except KeyError:
+            print(LoggingSeverity.ERROR + Message.COLUMNOPTION_ERROR_VALUE + " " + str(calculateItemOption))
+        except ValueError:
+            print(LoggingSeverity.ERROR + Message.COLUMNOPTION_ERROR_VALUE + " " + str(calculateItemOption))
+    else:
+        return "NaN"
+    return target
 
 def main():
     # input
@@ -140,11 +217,16 @@ def main():
             exit()
         settingsFile = "./settings.yaml"
     
-    outputColumnList = load_settings(settingsFile)
-    print(outputColumnList)
+    outputSettings = load_settings(settingsFile)
+    
     # process
-
+    calculateResults = calculate_subnets(targetValue, outputSettings)
+    
+    # return {{'name': 'value', 'name': 'value'}}
     # output
+    #for v in outputSettings['column'].keys():
+    #    header.append(outputSettings['column'][v]['name'])
 
 if __name__ == "__main__":
     main()
+
